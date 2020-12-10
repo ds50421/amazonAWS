@@ -1,25 +1,16 @@
-#gets all instaces related stack prod-f
-
+echo "========================================All instnaces in prod-f================================"
 aws ec2 describe-instances --query "Reservations[].Instances[].[InstanceId,State.Name,PrivateIpAddress,LaunchTime,Tags[?Key=='Name'].Value | [0], InstanceType]" --filter Name=tag:stack,Values=prod-f --output table
------------------------------------------------------------------------------------------------------
-|                                         DescribeInstances                                         |
-+---------------------+----------+-----------------+----------------------------------+-------------+
-|  i-04d0ac0d|  running |  XXXX |  horizon.aem.65.prod-f.disp1     |  m5.large   |
-|  i-00a585ada|  running |  XXXX |  horizon.aem.65.prod-f.publish3  |  m5.xlarge  |
-|  i-0a2ad04b|  running | XXXX |  horizon.aem.65.prod-f.disp2     |  m5.large   |
-|  i-0a0a03bcf|  running | XXXX  |  horizon.aem.65.prod-f.publish2  |  m5.xlarge  |
-|  i-004b1a419|  running |  XXXX |  horizon.aem.65.prod-f.author    |  m5.xlarge  |
-|  i-058cf15f4|  running | XXX  |  horizon.aem.65.prod-f.disp3     |  m5.large   |
-|  i-097027da34da|  running |  XXX  |  horizon.aem.65.prod-f.publish1  |  m5.xlarge  |
-|  i-0425c34f1|  running |  XXXX |  horizon.aem.65.prod-f.disp4     |  m5.large   |
-+---------------------+----------+-----------------+----------------------------------+-------------+
-
-
-#Gets instace info
-	aws ec2 describe-instances \
-    --instance-ids  i-0425c34fe08cc7c%%
-    
-    
-#
-    
+echo "=======================================all instnaces in prod-e================================="
+aws ec2 describe-instances --query "Reservations[].Instances[].[InstanceId,State.Name,PrivateIpAddress,LaunchTime,Tags[?Key=='Name'].Value | [0], InstanceType]" --filter Name=tag:stack,Values=prod-e --output table
+echo "=======================================Status of instnaces in LB linked to prod-e==============================="
+aws elb describe-instance-health --load-balancer-name horizon-aem-prod-e-lb --output table
+echo "=======================================Instnaces linked to App load balancer prod-f============"
+aws elb describe-instance-health --load-balancer-name "horizon-aem-prod-f-lb" --output table
+echo "=======================================Scheduled maintence instaces============================"
+aws ec2 describe-instance-status --filters "Name=event.code,Values='instance-reboot','system-reboot','system-maintenance','instance-retirement','instance-stop'"
+echo "======================================Scheduled maintenece instance name======================="
+aws ec2 describe-instance-status --include-all-instances --filters "Name=event.code,Values=*" --output text --query 'InstanceStatuses[].[InstanceId,Events]'
+echo "======================================Details of instnaces that are having maintenetce messages============="
+deepak=$(aws ec2 describe-instance-status --include-all-instances --filters "Name=event.code,Values=*" --output text --query 'InstanceStatuses[].[InstanceId]')
+aws ec2 describe-instances --instance-id $deepak --query "Reservations[].Instances[].[InstanceId,State.Name,PrivateIpAddress,Tags[?Key=='Name'].Value | [0], InstanceType]" --output table
     
